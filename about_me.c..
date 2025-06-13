@@ -1,0 +1,153 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_MEMBERS 5
+#define MAX_NAME_LEN 30
+#define MAX_NICK_LEN 20
+#define NUM_TESTS 7
+#define DAYS 6
+
+const char *exercise_types[][3] = {
+    {"러닝", "자전거", "빠른 걷기"},
+    {"푸시업", "스쿼트", ""},
+    {"레그 프레스", "레그 컬", ""},
+    {"철봉", "풀업 바", ""},
+    {"플랭크", "크런치", ""}
+};
+
+const char *exercise_categories[] = {
+    "유산소", "전신 근력", "하체 근력", "상체 근력", "코어"
+};
+
+const char *week_days[DAYS] = {"월", "화", "수", "목", "금", "토"};
+
+typedef struct {
+    char name[MAX_NAME_LEN];
+    char nickname[MAX_NICK_LEN];
+} Member;
+
+Member milliways_members[MAX_MEMBERS] = {
+    {"지민", "jimin"},
+    {"태형", "taehyung"},
+    {"남준", "namjoon"},
+    {"윤기", "yoongi"},
+    {"정국", "jungkook"}
+};
+
+char member_routine[MAX_MEMBERS][DAYS][40];
+
+int findMemberIndexByName(const char *name) {
+    for (int i = 0; i < MAX_MEMBERS; i++) {
+        if (strcmp(milliways_members[i].name, name) == 0) return i;
+    }
+    return -1;
+}
+
+void printMembers() {
+    printf("\n[멤버 목록]\n");
+    for (int i = 0; i < MAX_MEMBERS; i++) {
+        printf("  %s (%s)\n", milliways_members[i].name, milliways_members[i].nickname);
+    }
+}
+
+void setExerciseRoutine() {
+    char name[MAX_NAME_LEN];
+    printMembers();
+    printf("\n운동 루틴을 설정할 멤버 이름 입력: ");
+    scanf("%s", name);
+
+    int idx = findMemberIndexByName(name);
+    if (idx == -1) {
+        printf("⚠️ 존재하지 않는 멤버입니다.\n");
+        return;
+    }
+
+    int core_used = 0;
+
+    for (int d = 0; d < DAYS; d++) {
+        printf("\n[%s 요일 루틴 설정]\n", week_days[d]);
+
+        printf("  유산소 운동 선택:\n");
+        for (int i = 0; i < 3; i++)
+            printf("    %d. %s\n", i + 1, exercise_types[0][i]);
+        int cardio;
+        scanf("%d", &cardio);
+        if (cardio < 1 || cardio > 3) {
+            printf("⚠️ 유효하지 않은 선택입니다.\n");
+            return;
+        }
+
+        printf("  근력/코어 운동 선택:\n");
+        int num = 1;
+        for (int cat = 1; cat <= 4; cat++) {
+            for (int i = 0; exercise_types[cat][i][0] != '\0'; i++) {
+                printf("    %d%d. %s (%s)\n", cat, i + 1, exercise_types[cat][i], exercise_categories[cat]);
+            }
+        }
+
+        char input[3];
+        scanf("%s", input);
+        int cat = input[0] - '0';
+        int ex = input[1] - '1';
+
+        if (cat < 1 || cat > 4 || exercise_types[cat][ex][0] == '\0') {
+            printf("⚠️ 잘못된 근력/코어 운동 선택입니다.\n");
+            return;
+        }
+
+        if (cat == 4 && core_used) {
+            printf("⚠️ 코어 운동은 주 1회만 가능합니다.\n");
+            return;
+        }
+
+        if (cat == 4) core_used = 1;
+
+        snprintf(member_routine[idx][d], 40, "%s + %s",
+                 exercise_types[0][cardio - 1], exercise_types[cat][ex]);
+    }
+
+    printf("\n✅ %s님의 운동 루틴이 저장되었습니다.\n", name);
+}
+
+void getExerciseRoutine() {
+    char name[MAX_NAME_LEN];
+    printMembers();
+    printf("\n운동 루틴을 조회할 멤버 이름 입력: ");
+    scanf("%s", name);
+
+    int idx = findMemberIndexByName(name);
+    if (idx == -1) {
+        printf("⚠️ 존재하지 않는 멤버입니다.\n");
+        return;
+    }
+
+    printf("\n[운동 루틴 - %s (%s)]\n", milliways_members[idx].name, milliways_members[idx].nickname);
+    for (int d = 0; d < DAYS; d++) {
+        printf("  %s: %s\n", week_days[d], member_routine[idx][d]);
+    }
+}
+
+void showMenu() {
+    int choice;
+    do {
+        printf("\n=== 밀리웨이즈 기초 루틴 시스템 ===\n");
+        printf("1. 기초 운동 루틴 설정\n");
+        printf("2. 기초 운동 루틴 조회\n");
+        printf("0. 종료\n");
+        printf("메뉴 선택: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1: setExerciseRoutine(); break;
+            case 2: getExerciseRoutine(); break;
+            case 0: printf("👋 종료합니다.\n"); break;
+            default: printf("⚠️ 잘못된 입력입니다.\n"); break;
+        }
+    } while (choice != 0);
+}
+
+int main() {
+    showMenu();
+    return 0;
+}
